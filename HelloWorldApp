@@ -6,28 +6,10 @@ namespace HelloWorldApp
     {
         static void Main(string[] args)
         {
-            // Виводимо привітання
-            Console.WriteLine("Привіт! Це простий консольний додаток на C#.");
-            Console.WriteLine("Ми будемо показувати кілька повідомлень на екрані.");
-            
-            // Показуємо повідомлення кілька разів
             Console.WriteLine("Hello, World!");
-            Console.WriteLine("Це ще одне повідомлення.");
-            Console.WriteLine("C# дуже цікавий!");
-            
-            // Попросимо користувача ввести своє ім'я
-            Console.Write("Введи своє ім'я: ");
-            string name = Console.ReadLine();
-            
-            // Привітання користувача
-            Console.WriteLine("Радий тебе бачити, " + name + "!");
-            
-            // Кінець програми
-            Console.WriteLine("Натисни будь-яку клавішу, щоб закрити програму...");
+            Console.WriteLine("Натисни будь-яку клавішу, щоб вийти...");
             Console.ReadKey();
         }
     }
 }
-
-
 
