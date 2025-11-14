@@ -1,0 +1,74 @@
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+        while (true) // Гра повторюється, поки користувач не завершить
+        {
+            int secretNumber = 3; // Загадане число
+            int attempts = 0;
+            bool guessed = false;
+
+            Console.WriteLine("Гра: Вгадай число від 1 до 33");
+
+            while (!guessed)
+            {
+                Console.Write("\nВведіть ваше число: ");
+                string input = Console.ReadLine();
+
+                if (!int.TryParse(input, out int userGuess))
+                {
+                    Console.WriteLine("Помилка: введіть ціле число!");
+                    continue;
+                }
+
+                if (userGuess < 1 || userGuess > 33)
+                {
+                    Console.WriteLine("Число повинно бути в межах від 1 до 33!");
+                    continue;
+                }
+
+                attempts++;
+
+                if (userGuess == secretNumber)
+                {
+                    guessed = true;
+
+                    if (attempts == 1)
+                    {
+                        Console.WriteLine($"Ви вгадали число {secretNumber} з першої спроби!");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Ви вгадали число {secretNumber} за {attempts} спроб(и)!");
+                    }
+                }
+                else
+                {
+                    if (userGuess < secretNumber)
+                    {
+                        Console.WriteLine("Підказка: загадане число більше.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Підказка: загадане число менше.");
+                    }
+                }
+            }
+
+            Console.Write("\nБажаєте зіграти ще раз? (так/ні): ");
+            string answer = Console.ReadLine().ToLower();
+
+            if (answer != "так" && answer != "yes" && answer != "y")
+            {
+                Console.WriteLine("Дякуємо за гру!");
+                break;
+            }
+
+            Console.Clear();
+        }
+    }
+}
