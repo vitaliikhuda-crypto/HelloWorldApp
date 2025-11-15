@@ -57,7 +57,7 @@ class Program
     static void ShowFlats()
     {
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("\n--- Доступні квартири ---");
+        Console.WriteLine(" Доступні квартири ");
         Console.ResetColor();
 
         Console.WriteLine("1. Однокімнатна — 8000 грн/міс");
@@ -69,7 +69,7 @@ class Program
     static void CalculateRent()
     {
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("\n--- Розрахунок оренди ---");
+        Console.WriteLine(" Розрахунок оренди ");
         Console.ResetColor();
 
         double pricePerMonth = 0;
