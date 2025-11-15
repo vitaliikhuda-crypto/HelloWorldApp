@@ -4,46 +4,39 @@ class Program
 {
     static void Main()
     {
-        Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("Сервіс оренди квартир");
-        Console.ResetColor();
 
-        double price1 = 800; // Однокімнатна
-        double price2 = 1200; // Двокімнатна
-        double price3 = 2000; // Люкс
+        double price1 = 800;   // Однокімнатна
+        double price2 = 1200;  // Двокімнатна
+        double price3 = 1500;  // Трикімнатна
 
-        Console.Write("Введіть кількість днів оренди однокімнатної квартири: ");
-        int days1 = Convert.ToInt32(Console.ReadLine());
+        Console.WriteLine("Оберіть тип квартири:");
+        Console.WriteLine("1 - Однокімнатна");
+        Console.WriteLine("2 - Двокімнатна");
+        Console.WriteLine("3 - Трикімнатна");
+        Console.Write("Ваш вибір: ");
+        int choice = Convert.ToInt32(Console.ReadLine());
 
-        Console.Write("Введіть кількість днів оренди двокімнатної квартири: ");
-        int days2 = Convert.ToInt32(Console.ReadLine());
+        double result = 0;
 
-        Console.Write("Введіть кількість днів оренди люксу: ");
-        int days3 = Convert.ToInt32(Console.ReadLine());
+        if (choice == 1)
+        {
+            result = price1;
+        }
+        else if (choice == 2)
+        {
+            result = price2;
+        }
+        else if (choice == 3)
+        {
+            result = price3;
+        }
+        else
+        {
+            Console.WriteLine("Невірний вибір!");
+            return;
+        }
 
-        double sum1 = price1 * days1;
-        double sum2 = price2 * days2;
-        double sum3 = price3 * days3;
-
-        double total = sum1 + sum2 + sum3;
-
-        Random rnd = new Random();
-        double discount = rnd.Next(0, 11); // Знижка 0–10%
-        double totalWithDiscount = total - (total * discount / 100);
-
-        Console.WriteLine("\n----- Результати -----");
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine($"Однокімнатна: {Math.Round(sum1, 2)} грн");
-        Console.WriteLine($"Двокімнатна: {Math.Round(sum2, 2)} грн");
-        Console.WriteLine($"Люкс: {Math.Round(sum3, 2)} грн");
-        Console.ResetColor();
-
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"Знижка: {discount}%");
-        Console.WriteLine($"Підсумкова сума: {Math.Round(totalWithDiscount, 2)} грн");
-        Console.ResetColor();
-
-        double sqrt = Math.Sqrt(totalWithDiscount);
-        Console.WriteLine($"Квадратний корінь із суми: {Math.Round(sqrt, 2)}");
+        Console.WriteLine("Вартість оренди: " + result + " грн");
     }
 }
