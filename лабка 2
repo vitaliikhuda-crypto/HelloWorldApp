@@ -12,7 +12,7 @@ class Program
 
     static void ShowMenu()
     {
-        Console.WriteLine("\n=== ГОЛОВНЕ МЕНЮ ===");
+        Console.WriteLine( ГОЛОВНЕ МЕНЮ );
         Console.WriteLine("1. Переглянути доступні квартири");
         Console.WriteLine("2. Розрахувати вартість оренди");
         Console.WriteLine("3. Інформація про сервіс");
