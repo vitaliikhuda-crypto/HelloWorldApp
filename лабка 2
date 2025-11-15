@@ -1,0 +1,118 @@
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("СЕРВІС ОРЕНДИ КВАРТИР");
+        Console.ResetColor();
+        ShowMenu();
+    }
+
+    static void ShowMenu()
+    {
+        Console.WriteLine("\n=== ГОЛОВНЕ МЕНЮ ===");
+        Console.WriteLine("1. Переглянути доступні квартири");
+        Console.WriteLine("2. Розрахувати вартість оренди");
+        Console.WriteLine("3. Інформація про сервіс");
+        Console.WriteLine("4. Налаштування (заглушка)");
+        Console.WriteLine("0. Вихід");
+        Console.Write("Ваш вибір: ");
+
+        try
+        {
+            int choice = Convert.ToInt32(Console.ReadLine());
+
+            switch (choice)
+            {
+                case 1:
+                    ShowFlats();
+                    break;
+                case 2:
+                    CalculateRent();
+                    break;
+                case 3:
+                    ShowInfo();
+                    break;
+                case 4:
+                    Console.WriteLine("Функція в розробці...");
+                    break;
+                case 0:
+                    Console.WriteLine("Дякуємо за користування сервісом!");
+                    return;
+                default:
+                    Console.WriteLine("Невірний вибір!");
+                    break;
+            }
+        }
+        catch (FormatException)
+        {
+            Console.WriteLine("Помилка: введено некоректне число!");
+        }
+
+        ShowMenu(); // рекурсивний виклик
+    }
+
+    static void ShowFlats()
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("\n--- Доступні квартири ---");
+        Console.ResetColor();
+
+        Console.WriteLine("1. Однокімнатна — 8000 грн/міс");
+        Console.WriteLine("2. Двокімнатна — 12000 грн/міс");
+        Console.WriteLine("3. Трикімнатна — 15000 грн/міс");
+        Console.WriteLine("4. Пентхаус — 25000 грн/міс");
+    }
+
+    static void CalculateRent()
+    {
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("\n--- Розрахунок оренди ---");
+        Console.ResetColor();
+
+        double pricePerMonth = 0;
+        Console.Write("Виберіть тип квартири (1-4): ");
+
+        try
+        {
+            int type = Convert.ToInt32(Console.ReadLine());
+
+            switch (type)
+            {
+                case 1: pricePerMonth = 8000; break;
+                case 2: pricePerMonth = 12000; break;
+                case 3: pricePerMonth = 15000; break;
+                case 4: pricePerMonth = 25000; break;
+                default:
+                    Console.WriteLine("Невірний вибір!");
+                    return;
+            }
+
+            Console.Write("Введіть кількість місяців: ");
+            int months = Convert.ToInt32(Console.ReadLine());
+
+            double total = CalculateTotal(pricePerMonth, months, out double discount);
+            Console.WriteLine($"Загальна вартість: {total} грн");
+            Console.WriteLine($"Знижка застосована: {discount * 100}%");
+        }
+        catch (FormatException)
+        {
+            Console.WriteLine("Помилка: введено нечислове значення!");
+        }
+    }
+
+    static double CalculateTotal(double price, int months, out double discount)
+    {
+        discount = months >= 6 ? 0.1 : 0.0;
+        return price * months * (1 - discount);
+    }
+
+    static void ShowInfo()
+    {
+        Console.WriteLine("\nСервіс оренди квартир допомагає знайти житло швидко і зручно.");
+        Console.WriteLine("У базі — лише перевірені орендодавці.");
+        Console.WriteLine("Контактна інформація: info@rentservice.ua");
+    }
+}
