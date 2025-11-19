@@ -1,0 +1,72 @@
+using System;
+}
+}
+while (attempts < 3);
+
+
+if (attempts == 3)
+{
+Console.WriteLine("Доступ заблоковано.");
+return;
+}
+
+
+Apartment a1 = new Apartment("Київ", 12000, 1, "Іванов");
+Apartment a2 = new Apartment("Львів", 15000, 2, "Петров");
+
+
+bool exit = false;
+
+
+while (!exit)
+{
+Console.WriteLine("
+1 — Показати квартиру 1");
+Console.WriteLine("2 — Показати квартиру 2");
+Console.WriteLine("3 — Статистика");
+Console.WriteLine("0 — Вихід");
+Console.Write("Ваш вибір: ");
+
+
+string choice = Console.ReadLine();
+
+
+switch (choice)
+{
+case "1":
+a1.Show();
+break;
+
+
+case "2":
+a2.Show();
+break;
+
+
+case "3":
+double total = a1.Price + a2.Price;
+double avg = total / 2;
+
+
+Console.WriteLine($"Загальна сума: {total}");
+Console.WriteLine($"Середня ціна: {avg}");
+
+
+break;
+
+
+case "0":
+exit = true;
+break;
+
+
+default:
+Console.WriteLine("Невідомий пункт меню.");
+break;
+}
+}
+
+
+Console.WriteLine("Програму завершено.");
+}
+}
