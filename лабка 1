@@ -4,32 +4,38 @@ class Program
 {
     static void Main()
     {
-        Console.WriteLine("Сервіс оренди квартир");
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
 
+        Console.WriteLine("=== Сервіс оренди квартир ===");
+        Console.WriteLine();
+
+        // Ціни на квартири
         double price1 = 800;   // Однокімнатна
         double price2 = 1200;  // Двокімнатна
         double price3 = 1500;  // Трикімнатна
 
+        // Меню вибору
         Console.WriteLine("Оберіть тип квартири:");
-        Console.WriteLine("1 - Однокімнатна");
-        Console.WriteLine("2 - Двокімнатна");
-        Console.WriteLine("3 - Трикімнатна");
+        Console.WriteLine("1 - Однокімнатна (800 грн/день)");
+        Console.WriteLine("2 - Двокімнатна (1200 грн/день)");
+        Console.WriteLine("3 - Трикімнатна (1500 грн/день)");
         Console.Write("Ваш вибір: ");
+
         int choice = Convert.ToInt32(Console.ReadLine());
 
-        double result = 0;
+        double price = 0;
 
         if (choice == 1)
         {
-            result = price1;
+            price = price1;
         }
         else if (choice == 2)
         {
-            result = price2;
+            price = price2;
         }
         else if (choice == 3)
         {
-            result = price3;
+            price = price3;
         }
         else
         {
@@ -37,6 +43,29 @@ class Program
             return;
         }
 
-        Console.WriteLine("Вартість оренди: " + result + " грн");
+        Console.Write("Введіть кількість днів оренди: ");
+        int days = Convert.ToInt32(Console.ReadLine());
+
+        // Розрахунок
+        double total = price * days;
+
+        // Генерація знижки
+        Random rand = new Random();
+        int sale = rand.Next(5, 16); // від 5% до 15%
+
+        double discount = total * sale / 100;
+        double finalPrice = total - discount;
+
+        // Округлення
+        finalPrice = Math.Round(finalPrice, 2);
+
+        // Вивід результату
+        Console.WriteLine();
+        Console.WriteLine("=== Результат ===");
+        Console.WriteLine("Ціна за 1 день: " + price + " грн");
+        Console.WriteLine("Кількість днів: " + days);
+        Console.WriteLine("Сума без знижки: " + total + " грн");
+        Console.WriteLine("Знижка: " + sale + "%");
+        Console.WriteLine("До оплати: " + finalPrice + " грн");
     }
 }
