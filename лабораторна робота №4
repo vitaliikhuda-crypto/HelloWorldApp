@@ -1,0 +1,227 @@
+using System;
+using System.Collections.Generic;
+
+class Apartment
+{
+    public int Id;
+    public string City;
+    public double Price;
+    public int Rooms;
+    public string Owner;
+
+    public Apartment(int id, string city, double price, int rooms, string owner)
+    {
+        Id = id;
+        City = city;
+        Price = price;
+        Rooms = rooms;
+        Owner = owner;
+    }
+
+    public void Show()
+    {
+        Console.WriteLine($"{Id,3} | {City,-10} | {Price,8} | {Rooms,5} | {Owner,-10}");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        //  Вхід + захист від помилок 
+        int attempts = 0;
+
+        do
+        {
+            Console.Write("Введіть пароль (1234): ");
+            string pass = Console.ReadLine();
+
+            if (pass == "1234")
+            {
+                break;
+            }
+
+            attempts++;
+            Console.WriteLine("Невірно!");
+        }
+        while (attempts < 3);
+
+        if (attempts == 3)
+        {
+            Console.WriteLine("Доступ заблоковано.");
+            return;
+        }
+
+        //  Список квартир 
+        List<Apartment> list = new List<Apartment>();
+
+        // Додаємо 5 квартир через цикл
+        string[] cities = { "Київ", "Львів", "Одеса", "Харків", "Дніпро" };
+        double[] prices = { 12000, 15000, 11000, 9000, 13000 };
+        int[] rooms = { 1, 2, 1, 3, 2 };
+        string[] owners = { "Іванов", "Петров", "Сидоров", "Мельник", "Коваль" };
+
+        for (int i = 0; i < 5; i++)
+        {
+            list.Add(new Apartment(i + 1, cities[i], prices[i], rooms[i], owners[i]));
+        }
+
+        //  Меню 
+        bool exit = false;
+
+        while (!exit)
+        {
+            Console.WriteLine("\n=== МЕНЮ ===");
+            Console.WriteLine("1 — Показати всі квартири");
+            Console.WriteLine("2 — Додати квартиру");
+            Console.WriteLine("3 — Пошук за ID");
+            Console.WriteLine("4 — Видалити за ID");
+            Console.WriteLine("5 — Сортувати за ціною");
+            Console.WriteLine("6 — Статистика");
+            Console.WriteLine("7 — Бульбашкове сортування (моє)");
+            Console.WriteLine("0 — Вихід");
+            Console.Write("Ваш вибір: ");
+
+            string choice = Console.ReadLine();
+            Console.WriteLine();
+
+            switch (choice)
+            {
+                //  Виведення всіх
+                case "1":
+                    Console.WriteLine($"{"ID",3} | {"Місто",-10} | {"Ціна",8} | {"Кімн.",5} | {"Власник",-10}");
+                    Console.WriteLine("------------------------------------------------");
+
+                    foreach (var a in list)
+                        a.Show();
+                    break;
+
+                //  ДОДАВАННЯ 
+                case "2":
+                    try
+                    {
+                        Console.Write("ID: ");
+                        int id = int.Parse(Console.ReadLine());
+
+                        Console.Write("Місто: ");
+                        string c = Console.ReadLine();
+
+                        Console.Write("Ціна: ");
+                        double p = double.Parse(Console.ReadLine());
+
+                        Console.Write("Кімнат: ");
+                        int r = int.Parse(Console.ReadLine());
+
+                        Console.Write("Власник: ");
+                        string o = Console.ReadLine();
+
+                        list.Add(new Apartment(id, c, p, r, o));
+                        Console.WriteLine("Додано!");
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Помилка вводу!");
+                    }
+                    break;
+
+                //  Пошук 
+                case "3":
+                    Console.Write("Введіть ID: ");
+                    int sid = int.Parse(Console.ReadLine());
+
+                    bool found = false;
+                    foreach (var a in list)
+                    {
+                        if (a.Id == sid)
+                        {
+                            a.Show();
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found) Console.WriteLine("Не знайдено.");
+                    break;
+
+                //  Видалення 
+                case "4":
+                    Console.Write("Введіть ID для видалення: ");
+                    int did = int.Parse(Console.ReadLine());
+
+                    bool removed = false;
+
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        if (list[i].Id == did)
+                        {
+                            list.RemoveAt(i);
+                            removed = true;
+                            Console.WriteLine("Видалено!");
+                            break;
+                        }
+                    }
+
+                    if (!removed) Console.WriteLine("Такого ID немає.");
+                    break;
+
+                //  Ввбудоване сортування 
+                case "5":
+                    list.Sort((a, b) => a.Price.CompareTo(b.Price));
+                    Console.WriteLine("Відсортовано (List.Sort).");
+                    break;
+
+                //  Статистика 
+                case "6":
+                    double sum = 0;
+                    double min = double.MaxValue;
+                    double max = double.MinValue;
+
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        double pr = list[i].Price;
+                        sum += pr;
+
+                        if (pr < min) min = pr;
+                        if (pr > max) max = pr;
+                    }
+
+                    double avg = sum / list.Count;
+
+                    Console.WriteLine($"Кількість: {list.Count}");
+                    Console.WriteLine($"Сума: {sum}");
+                    Console.WriteLine($"Середня ціна: {avg}");
+                    Console.WriteLine($"Мінімальна ціна: {min}");
+                    Console.WriteLine($"Максимальна ціна: {max}");
+                    break;
+
+                //  Моє сортування (БУЛЬБАШКА) 
+                case "7":
+                    for (int i = 0; i < list.Count - 1; i++)
+                    {
+                        for (int j = 0; j < list.Count - i - 1; j++)
+                        {
+                            if (list[j].Price > list[j + 1].Price)
+                            {
+                                var temp = list[j];
+                                list[j] = list[j + 1];
+                                list[j + 1] = temp;
+                            }
+                        }
+                    }
+                    Console.WriteLine("Відсортовано методом бульбашки.");
+                    break;
+
+                //  Вихід 
+                case "0":
+                    exit = true;
+                    break;
+
+                default:
+                    Console.WriteLine("Невідомий пункт.");
+                    break;
+            }
+        }
+
+        Console.WriteLine("Програму завершено.");
+    }
+}
