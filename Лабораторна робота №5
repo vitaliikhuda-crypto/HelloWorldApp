@@ -1,0 +1,603 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+
+namespace ApartmentCsvApp
+{
+    class Apartment
+    {
+        public int Id;
+        public string City;
+        public double Price;
+        public int Rooms;
+        public string Owner;
+
+        public Apartment(int id, string city, double price, int rooms, string owner)
+        {
+            Id = id;
+            City = city;
+            Price = price;
+            Rooms = rooms;
+            Owner = owner;
+        }
+
+        public void Show()
+        {
+            Console.WriteLine($"{Id,3} | {City,-10} | {Price,10:N2} | {Rooms,5} | {Owner,-10}");
+        }
+
+        public string ToCsv()
+        {
+            return $"{Id};{Escape(City)};{Price.ToString(CultureInfo.InvariantCulture)};{Rooms};{Escape(Owner)}";
+        }
+
+        public static bool TryParseCsv(string line, out Apartment apt)
+        {
+            apt = null;
+            if (string.IsNullOrWhiteSpace(line)) return false;
+
+            var parts = line.Split(';');
+            if (parts.Length != 5) return false;
+
+            if (!int.TryParse(parts[0], out int id)) return false;
+            string city = Unescape(parts[1]);
+            if (!double.TryParse(parts[2], NumberStyles.Any, CultureInfo.InvariantCulture, out double price)) return false;
+            if (!int.TryParse(parts[3], out int rooms)) return false;
+            string owner = Unescape(parts[4]);
+
+            apt = new Apartment(id, city, price, rooms, owner);
+            return true;
+        }
+
+        private static string Escape(string s)
+        {
+            if (s == null) return "";
+            return s.Replace("\r", " ").Replace("\n", " ").Replace(";", ",");
+        }
+
+        private static string Unescape(string s) => s;
+    }
+
+    static class FileHelpers
+    {
+        public static void EnsureFileWithHeader(string path, string header)
+        {
+            if (!File.Exists(path))
+            {
+                File.WriteAllLines(path, new[] { header });
+            }
+            else
+            {
+                var all = File.ReadAllLines(path);
+                if (all.Length == 0 || all[0].Trim() != header.Trim())
+                {
+                    var rest = all.Length > 0 ? all : new string[0];
+                    var lines = new List<string> { header };
+                    lines.AddRange(rest.Skip(1));
+                    File.WriteAllLines(path, lines);
+                }
+            }
+        }
+
+        public static int GenerateNewId(string path)
+        {
+            if (!File.Exists(path)) return 1;
+
+            int max = 0;
+            try
+            {
+                var lines = File.ReadAllLines(path).Skip(1);
+                foreach (var line in lines)
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    var parts = line.Split(';');
+                    if (parts.Length == 0) continue;
+                    if (int.TryParse(parts[0], out int id))
+                    {
+                        if (id > max) max = id;
+                    }
+                }
+            }
+            catch
+            {
+                return 1;
+            }
+            return max + 1;
+        }
+    }
+
+    class User
+    {
+        public int Id;
+        public string Email;
+        public string PasswordHash;
+
+        public User(int id, string email, string passwordHash)
+        {
+            Id = id;
+            Email = email;
+            PasswordHash = passwordHash;
+        }
+
+        public string ToCsv()
+        {
+            return $"{Id};{Email};{PasswordHash}";
+        }
+
+        public static bool TryParseCsv(string line, out User u)
+        {
+            u = null;
+            if (string.IsNullOrWhiteSpace(line)) return false;
+            var parts = line.Split(';');
+            if (parts.Length != 3) return false;
+
+            if (!int.TryParse(parts[0], out int id)) return false;
+            string email = parts[1];
+            string hash = parts[2];
+
+            u = new User(id, email, hash);
+            return true;
+        }
+    }
+
+    static class Auth
+    {
+        public static string HashPassword(string password)
+        {
+            using (var sha = SHA256.Create())
+            {
+                var bytes = Encoding.UTF8.GetBytes(password);
+                var hash = sha.ComputeHash(bytes);
+                return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+            }
+        }
+
+        public static bool VerifyHash(string password, string hash)
+        {
+            var h = HashPassword(password);
+            return h == hash;
+        }
+    }
+
+    class Program
+    {
+        const string ApartmentsFile = "apartments.csv";
+        const string ApartmentsHeader = "Id;City;Price;Rooms;Owner";
+
+        const string UsersFile = "users.csv";
+        const string UsersHeader = "Id;Email;PasswordHash";
+
+        static void Main()
+        {
+            FileHelpers.EnsureFileWithHeader(ApartmentsFile, ApartmentsHeader);
+            FileHelpers.EnsureFileWithHeader(UsersFile, UsersHeader);
+
+            Console.OutputEncoding = Encoding.UTF8;
+
+            Console.WriteLine("=== Система: Сервіс оренди квартир (CSV) ===\n");
+
+            int? userId = AuthMenu();
+            if (userId == null)
+            {
+                Console.WriteLine("Не пройдено авторизацію. Програма завершується.");
+                return;
+            }
+
+            EnsureSampleApartments();
+
+            ApartmentMenu();
+        }
+
+        static int? AuthMenu()
+        {
+            while (true)
+            {
+                Console.WriteLine("1 - Увійти");
+                Console.WriteLine("2 - Зареєструватися");
+                Console.WriteLine("0 - Вихід");
+                Console.Write("Ваш вибір: ");
+                var ch = Console.ReadLine();
+                Console.WriteLine();
+
+                switch (ch)
+                {
+                    case "1":
+                        var id = Login();
+                        if (id != null) return id;
+                        break;
+                    case "2":
+                        Register();
+                        break;
+                    case "0":
+                        return null;
+                    default:
+                        Console.WriteLine("Невідомий пункт.");
+                        break;
+                }
+            }
+        }
+
+        static void Register()
+        {
+            Console.WriteLine("--- РЕЄСТРАЦІЯ ---");
+            Console.Write("Email (Enter – використати vitalii.khuda@student.uzhnu.edu.ua): ");
+            var emailInput = Console.ReadLine()?.Trim();
+
+            string email = string.IsNullOrWhiteSpace(emailInput)
+                ? "vitalii.khuda@student.uzhnu.edu.ua"
+                : emailInput;
+
+            var users = ReadAllUsers();
+            if (users.Any(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine("Користувач з таким email вже існує.");
+                return;
+            }
+
+            Console.Write("Пароль: ");
+            var pwd = ReadPassword();
+            if (string.IsNullOrEmpty(pwd))
+            {
+                Console.WriteLine("Порожній пароль.");
+                return;
+            }
+
+            var newId = FileHelpers.GenerateNewId(UsersFile);
+            var hash = Auth.HashPassword(pwd);
+            var user = new User(newId, email, hash);
+
+            try
+            {
+                File.AppendAllLines(UsersFile, new[] { user.ToCsv() });
+                Console.WriteLine("Реєстрація пройшла успішно.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Помилка: " + ex.Message);
+            }
+        }
+
+        static int? Login()
+        {
+            Console.WriteLine(" ВХІД ");
+            Console.Write("Email: ");
+            var email = Console.ReadLine()?.Trim();
+            Console.Write("Пароль: ");
+            var pwd = ReadPassword();
+
+            var users = ReadAllUsers();
+            var user = users.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+            if (user == null)
+            {
+                Console.WriteLine("Немає такого користувача.");
+                return null;
+            }
+
+            if (!Auth.VerifyHash(pwd, user.PasswordHash))
+            {
+                Console.WriteLine("Невірний пароль.");
+                return null;
+            }
+
+            Console.WriteLine("Успішний вхід! Привіт, " + user.Email + "!");
+            return user.Id;
+        }
+
+        static List<User> ReadAllUsers()
+        {
+            var res = new List<User>();
+            try
+            {
+                var lines = File.ReadAllLines(UsersFile).Skip(1);
+                foreach (var l in lines)
+                    if (User.TryParseCsv(l, out User u))
+                        res.Add(u);
+            }
+            catch { }
+            return res;
+        }
+
+        static string ReadPassword()
+        {
+            var pwd = new StringBuilder();
+            ConsoleKeyInfo key;
+            while ((key = Console.ReadKey(true)).Key != ConsoleKey.Enter)
+            {
+                if (key.Key == ConsoleKey.Backspace && pwd.Length > 0)
+                {
+                    pwd.Length--;
+                    Console.Write("\b \b");
+                }
+                else if (!char.IsControl(key.KeyChar))
+                {
+                    pwd.Append(key.KeyChar);
+                    Console.Write("*");
+                }
+            }
+            Console.WriteLine();
+            return pwd.ToString();
+        }
+
+        static void EnsureSampleApartments()
+        {
+            var lines = File.ReadAllLines(ApartmentsFile);
+            if (lines.Length <= 1)
+            {
+                var sample = new List<string>
+                {
+                    ApartmentsHeader,
+                    new Apartment(1, "Київ", 12000, 1, "Іванов").ToCsv(),
+                    new Apartment(2, "Львів", 15000, 2, "Петров").ToCsv(),
+                    new Apartment(3, "Одеса", 11000, 1, "Сидоров").ToCsv(),
+                };
+                File.WriteAllLines(ApartmentsFile, sample);
+            }
+        }
+
+        static List<Apartment> ReadAllApartments()
+        {
+            var res = new List<Apartment>();
+            try
+            {
+                var lines = File.ReadAllLines(ApartmentsFile).Skip(1);
+                foreach (var l in lines)
+                    if (Apartment.TryParseCsv(l, out Apartment a))
+                        res.Add(a);
+            }
+            catch { }
+            return res;
+        }
+
+        static void SaveAllApartments(List<Apartment> list)
+        {
+            var lines = new List<string> { ApartmentsHeader };
+            lines.AddRange(list.Select(a => a.ToCsv()));
+            File.WriteAllLines(ApartmentsFile, lines);
+        }
+
+        static void ApartmentMenu()
+        {
+            bool exit = false;
+            while (!exit)
+            {
+                Console.WriteLine("\n Меню квартири ");
+                Console.WriteLine("1 — Показати всі квартири");
+                Console.WriteLine("2 — Додати квартиру");
+                Console.WriteLine("3 — Пошук за ID");
+                Console.WriteLine("4 — Видалити за ID");
+                Console.WriteLine("5 — Сортувати за ціною");
+                Console.WriteLine("6 — Статистика");
+                Console.WriteLine("7 — Бульбашкове сортування");
+                Console.WriteLine("8 — Редагувати");
+                Console.WriteLine("0 — Вихід");
+                Console.Write("Ваш вибір: ");
+
+                string choice = Console.ReadLine();
+                Console.WriteLine();
+
+                var list = ReadAllApartments();
+
+                switch (choice)
+                {
+                    case "1":
+                        PrintApartmentsTable(list);
+                        break;
+                    case "2":
+                        AddApartmentInteractive(list);
+                        break;
+                    case "3":
+                        SearchById(list);
+                        break;
+                    case "4":
+                        DeleteById(list);
+                        break;
+                    case "5":
+                        list.Sort((a, b) => a.Price.CompareTo(b.Price));
+                        SaveAllApartments(list);
+                        Console.WriteLine("Відсортовано.");
+                        break;
+                    case "6":
+                        ShowStatistics(list);
+                        break;
+                    case "7":
+                        BubbleSortAndSave(list);
+                        break;
+                    case "8":
+                        EditApartment(list);
+                        break;
+                    case "0":
+                        exit = true;
+                        break;
+                    default:
+                        Console.WriteLine("Невідомий пункт.");
+                        break;
+                }
+            }
+
+            Console.WriteLine("Програму завершено.");
+        }
+
+        static void PrintApartmentsTable(List<Apartment> list)
+        {
+            Console.WriteLine($"{"ID",3} | {"Місто",-10} | {"Ціна",10} | {"Кімн.",5} | {"Власник",-10}");
+            Console.WriteLine(new string('-', 50));
+            foreach (var a in list) a.Show();
+            Console.WriteLine($"(Усього: {list.Count})");
+        }
+
+        static void AddApartmentInteractive(List<Apartment> list)
+        {
+            try
+            {
+                int newId = FileHelpers.GenerateNewId(ApartmentsFile);
+                Console.WriteLine("--- Додавання квартири ---");
+                Console.WriteLine($"Авто-ID: {newId}");
+
+                Console.Write("Місто: ");
+                string c = Console.ReadLine();
+
+                Console.Write("Ціна: ");
+                if (!double.TryParse(Console.ReadLine(), NumberStyles.Any, CultureInfo.InvariantCulture, out double p))
+                {
+                    Console.WriteLine("Некоректна ціна.");
+                    return;
+                }
+
+                Console.Write("Кімнат: ");
+                if (!int.TryParse(Console.ReadLine(), out int r))
+                {
+                    Console.WriteLine("Некоректна кількість.");
+                    return;
+                }
+
+                Console.Write("Власник: ");
+                string o = Console.ReadLine();
+
+                var apt = new Apartment(newId, c, p, r, o);
+                File.AppendAllLines(ApartmentsFile, new[] { apt.ToCsv() });
+                Console.WriteLine("Додано!");
+            }
+            catch
+            {
+                Console.WriteLine("Помилка!");
+            }
+        }
+
+        static void SearchById(List<Apartment> list)
+        {
+            Console.Write("ID: ");
+            if (!int.TryParse(Console.ReadLine(), out int sid))
+            {
+                Console.WriteLine("Некоректно.");
+                return;
+            }
+
+            var a = list.FirstOrDefault(x => x.Id == sid);
+            if (a == null) Console.WriteLine("Не знайдено.");
+            else
+            {
+                Console.WriteLine($"{"ID",3} | {"Місто",-10} | {"Ціна",10} | {"Кімн.",5} | {"Власник",-10}");
+                Console.WriteLine(new string('-', 50));
+                a.Show();
+            }
+        }
+
+        static void DeleteById(List<Apartment> list)
+        {
+            Console.Write("ID для видалення: ");
+            if (!int.TryParse(Console.ReadLine(), out int did))
+            {
+                Console.WriteLine("Некоректно.");
+                return;
+            }
+
+            var toRemove = list.FirstOrDefault(x => x.Id == did);
+            if (toRemove == null)
+            {
+                Console.WriteLine("Такого немає.");
+                return;
+            }
+
+            list.Remove(toRemove);
+            SaveAllApartments(list);
+            Console.WriteLine("Видалено!");
+        }
+
+        static void ShowStatistics(List<Apartment> list)
+        {
+            if (list.Count == 0)
+            {
+                Console.WriteLine("Немає даних.");
+                return;
+            }
+
+            double sum = list.Sum(a => a.Price);
+            double avg = sum / list.Count;
+            double min = list.Min(a => a.Price);
+            double max = list.Max(a => a.Price);
+
+            Console.WriteLine($"Кількість: {list.Count}");
+            Console.WriteLine($"Сума: {sum:N2}");
+            Console.WriteLine($"Середня: {avg:N2}");
+            Console.WriteLine($"Мін: {min:N2}");
+            Console.WriteLine($"Макс: {max:N2}");
+        }
+
+        static void BubbleSortAndSave(List<Apartment> list)
+        {
+            for (int i = 0; i < list.Count - 1; i++)
+                for (int j = 0; j < list.Count - i - 1; j++)
+                    if (list[j].Price > list[j + 1].Price)
+                    {
+                        var t = list[j];
+                        list[j] = list[j + 1];
+                        list[j + 1] = t;
+                    }
+
+            SaveAllApartments(list);
+            Console.WriteLine("Відсортовано бульбашкою.");
+        }
+
+        static void EditApartment(List<Apartment> list)
+        {
+            Console.Write("ID: ");
+            if (!int.TryParse(Console.ReadLine(), out int id))
+            {
+                Console.WriteLine("Некоректно.");
+                return;
+            }
+
+            var a = list.FirstOrDefault(x => x.Id == id);
+            if (a == null)
+            {
+                Console.WriteLine("Не знайдено.");
+                return;
+            }
+
+            Console.WriteLine("Enter — пропустити зміну.");
+
+            Console.Write($"Місто ({a.City}): ");
+            var city = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(city)) a.City = city;
+
+            Console.Write($"Ціна ({a.Price}): ");
+            var prStr = Console.ReadLine();
+            if (double.TryParse(prStr, NumberStyles.Any, CultureInfo.InvariantCulture, out double newP))
+                a.Price = newP;
+
+            Console.Write($"Кімнат ({a.Rooms}): ");
+            var rmStr = Console.ReadLine();
+            if (int.TryParse(rmStr, out int newR))
+                a.Rooms = newR;
+
+            Console.Write($"Власник ({a.Owner}): ");
+            var ow = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(ow)) a.Owner = ow;
+
+            SaveAllApartments(list);
+            Console.WriteLine("Зміни збережено.");
+        }
+    }
+}
+
+                if (int.TryParse(roomsStr, out int newRooms))
+                    a.Rooms = newRooms;
+                else
+                {
+                    Console.WriteLine("Некоректна кількість кімнат, зміна скасована.");
+                }
+            }
+
+            Console.Write($"Власник ({a.Owner}): ");
+            var owner = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(owner)) a.Owner = owner;
+
+            SaveAllApartments(list);
+            Console.WriteLine("Збережено зміни.");
+        }
+    }
+}
