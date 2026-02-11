@@ -1,1 +1,77 @@
+using System;
+using System.Collections.Generic;
+
+namespace Lab6_MusicalInstruments
+{
+    // Абстрактний базовий клас
+    abstract class Instrument
+    {
+        protected string name;
+
+        public Instrument(string name)
+        {
+            this.name = name;
+        }
+
+        // Абстрактний метод відтворення характерного звуку
+        public abstract void Play();
+    }
+
+    // Клас Piano
+    class Piano : Instrument
+    {
+        public Piano(string name) : base(name) { }
+
+        public override void Play()
+        {
+            Console.WriteLine($"Фортепіано {name} відтворює мелодійну ноту: До-ре-мі.");
+        }
+    }
+
+    // Клас Guitar
+    class Guitar : Instrument
+    {
+        public Guitar(string name) : base(name) { }
+
+        public override void Play()
+        {
+            Console.WriteLine($"Гітара {name} відтворює струнний звук: Дзень-дзень.");
+        }
+    }
+
+    // Клас Drums
+    class Drums : Instrument
+    {
+        public Drums(string name) : base(name) { }
+
+        public override void Play()
+        {
+            Console.WriteLine($"Барабани {name} відтворюють ритм: Бум-бум.");
+        }
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            // Створення списку інструментів (поліморфізм)
+            List<Instrument> instruments = new List<Instrument>
+            {
+                new Piano("Yamaha"),
+                new Guitar("Fender"),
+                new Drums("Pearl")
+            };
+
+            Console.WriteLine("Відтворення характерного звуку кожного інструмента:\n");
+
+            foreach (Instrument instrument in instruments)
+            {
+                instrument.Play(); // динамічне зв'язування
+            }
+
+            Console.WriteLine("\nНатисніть будь-яку клавішу для завершення...");
+            Console.ReadKey();
+        }
+    }
+}
 
