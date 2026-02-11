@@ -30,4 +30,18 @@ namespace Lab6_MusicalInstruments
         }
     }
 }
+using System;
+
+namespace Lab6_MusicalInstruments
+{
+    class Guitar : Instrument
+    {
+        public Guitar(string name) : base(name) { }
+
+        public override void Play()
+        {
+            Console.WriteLine($"Гітара {name} відтворює струнний звук: Дзень-дзень.");
+        }
+    }
+}
 
