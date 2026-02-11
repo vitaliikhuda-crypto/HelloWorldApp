@@ -44,4 +44,18 @@ namespace Lab6_MusicalInstruments
         }
     }
 }
+using System;
+
+namespace Lab6_MusicalInstruments
+{
+    class Drums : Instrument
+    {
+        public Drums(string name) : base(name) { }
+
+        public override void Play()
+        {
+            Console.WriteLine($"Барабани {name} відтворюють ритм: Бум-бум.");
+        }
+    }
+}
 
