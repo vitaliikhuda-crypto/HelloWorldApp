@@ -70,4 +70,12 @@ namespace Lab6_Vehicles
         }
     }
 }
+namespace Lab6_Vehicles
+{
+    // Інтерфейс для заправки
+    interface IRefuelable
+    {
+        void Refuel();
+    }
+}
 
