@@ -1,0 +1,18 @@
+using System;
+
+namespace Lab6_MusicalInstruments
+{
+    // Абстрактний базовий клас
+    abstract class Instrument
+    {
+        protected string name;
+
+        public Instrument(string name)
+        {
+            this.name = name;
+        }
+
+        // Метод відтворення характерного звуку
+        public abstract void Play();
+    }
+}
