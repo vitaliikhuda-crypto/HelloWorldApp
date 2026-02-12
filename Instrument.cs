@@ -16,3 +16,45 @@ namespace Lab6_MusicalInstruments
         public abstract void Play();
     }
 }
+using System;
+
+namespace Lab6_MusicalInstruments
+{
+    class Piano : Instrument
+    {
+        public Piano(string name) : base(name) { }
+
+        public override void Play()
+        {
+            Console.WriteLine($"Фортепіано {name} відтворює мелодійну ноту: До-ре-мі.");
+        }
+    }
+}
+using System;
+
+namespace Lab6_MusicalInstruments
+{
+    class Guitar : Instrument
+    {
+        public Guitar(string name) : base(name) { }
+
+        public override void Play()
+        {
+            Console.WriteLine($"Гітара {name} відтворює струнний звук: Дзень-дзень.");
+        }
+    }
+}
+using System;
+
+namespace Lab6_MusicalInstruments
+{
+    class Drums : Instrument
+    {
+        public Drums(string name) : base(name) { }
+
+        public override void Play()
+        {
+            Console.WriteLine($"Барабани {name} відтворюють ритм: Бум-бум.");
+        }
+    }
+}
