@@ -78,4 +78,40 @@ namespace Lab6_Vehicles
         void Refuel();
     }
 }
+using System;
+using System.Collections.Generic;
+
+namespace Lab6_Vehicles
+{
+    class Program
+    {
+        static void Main()
+        {
+            List<Vehicle> vehicles = new List<Vehicle>
+            {
+                new Car("Toyota", 120),
+                new Bicycle("Giant", 25),
+                new Airplane("Boeing", 900)
+            };
+
+            Console.WriteLine("Демонстрація руху транспортних засобів:\n");
+
+            foreach (Vehicle vehicle in vehicles)
+            {
+                vehicle.Move();
+
+                // Перевірка на інтерфейс
+                if (vehicle is IRefuelable refuelable)
+                {
+                    refuelable.Refuel();
+                }
+
+                Console.WriteLine();
+            }
+
+            Console.WriteLine("Натисніть будь-яку клавішу для завершення...");
+            Console.ReadKey();
+        }
+    }
+}
 
