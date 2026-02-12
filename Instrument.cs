@@ -58,3 +58,31 @@ namespace Lab6_MusicalInstruments
         }
     }
 }
+using System;
+using System.Collections.Generic;
+
+namespace Lab6_MusicalInstruments
+{
+    class Program
+    {
+        static void Main()
+        {
+            List<Instrument> instruments = new List<Instrument>
+            {
+                new Piano("Yamaha"),
+                new Guitar("Fender"),
+                new Drums("Pearl")
+            };
+
+            Console.WriteLine("Відтворення характерного звуку кожного інструмента:\n");
+
+            foreach (Instrument instrument in instruments)
+            {
+                instrument.Play();
+            }
+
+            Console.WriteLine("\nНатисніть будь-яку клавішу для завершення...");
+            Console.ReadKey();
+        }
+    }
+}
